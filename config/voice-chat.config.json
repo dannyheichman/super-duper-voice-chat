@@ -1,5 +1,5 @@
 {
-  "hotkey": "Ctrl+Alt+F12",
+  "hotkey": "Ctrl+Shift+Q",
   "targetAdapterName": "copilot-cli",
   "speechTier": "windows-builtin",
   "voiceName": "Microsoft Zira Desktop",
