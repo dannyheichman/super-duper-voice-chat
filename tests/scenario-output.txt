@@ -1,1 +1,0 @@
-Ready. Press Ctrl+Shift+W to talk (model claude-haiku-4.5). Ctrl+C to quit.

@@ -3,3 +3,5 @@ node_modules/
 models/
 
 models/
+
+tests/scenario-output.txt*
