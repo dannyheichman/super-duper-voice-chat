@@ -114,7 +114,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
       const isFirstPhrase = draftText.trim().length === 0;
       draftText += ` ${text}`;
       clearTimeout(silenceTimer);
-      const graceSeconds = isFirstPhrase ? configuration.silenceTimeoutSeconds + 3 : configuration.silenceTimeoutSeconds; // extra time to think after the first phrase
+      const graceSeconds = isFirstPhrase ? configuration.silenceTimeoutSeconds * 3 : configuration.silenceTimeoutSeconds; // extra time to think after the first phrase
       silenceTimer = setTimeout(sendDraft, graceSeconds * 1000);
     } else if (state === 'awaitingApproval') {
       if (command === 'approve' && pendingApprovalIsDestructive) {

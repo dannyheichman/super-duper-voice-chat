@@ -34,7 +34,7 @@ test('silence auto-sends, answer is spoken, loop returns to listening', async ()
   const { loop, log, say, emit, finishSpeaking } = createFakes();
   loop.toggleListening();
   say('list the files');
-  await wait(80);
+  await wait(150);
   assert.ok(log.includes('send:list the files'));
   emit({ type: 'answerDelta', text: 'Two files. ' });
   emit({ type: 'turnCompleted' });
