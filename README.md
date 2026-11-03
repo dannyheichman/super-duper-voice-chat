@@ -24,3 +24,5 @@ Log in to Copilot first (run `copilot` once, or set `GH_TOKEN`). Stop with Ctrl+
 `npm test` (unit), `npm run test:worker` (real audio device), `node tests/copilot-adapter.live.ts` (spends credits), `tests/Run-VoiceScenario.ps1` (unattended; unreliable through speakers).
 
 See `AGENTS.md` for architecture and conventions.
+
+- Targets: --target copilot-sdk (default) | copilot-acp | vscode

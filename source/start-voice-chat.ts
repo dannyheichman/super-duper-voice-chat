@@ -8,6 +8,7 @@ import { loadConfiguration } from './shared/load-configuration.ts';
 import { startSpeechWorker } from './voice-engine/speech-worker-client.ts';
 import { createCopilotCliSdkAdapter } from './target-adapters/copilot-cli-sdk-adapter.ts';
 import { createVsCodeChatAdapter } from './target-adapters/vscode-chat-adapter.ts';
+import { createAcpAgentAdapter } from './target-adapters/acp-agent-adapter.ts';
 import { startMicrophoneRecognition } from './voice-engine/recognize-speech-locally.ts';
 import { runConversationLoop, type SpeechEngine } from './voice-engine/run-conversation-loop.ts';
 
@@ -25,7 +26,10 @@ function parseHotkey(hotkeyText: string): { modifiers: number; keyCode: number }
 const configuration = loadConfiguration();
 const modelName = process.argv.includes('--model') ? process.argv[process.argv.indexOf('--model') + 1] : 'claude-haiku-4.5';
 const worker = startSpeechWorker(fileURLToPath(new URL('./speech-workers/SpeechWorker.ps1', import.meta.url)));
-const baseAdapter = process.argv.includes('--target') && process.argv[process.argv.indexOf('--target') + 1] === 'vscode' ? createVsCodeChatAdapter() : createCopilotCliSdkAdapter(modelName);
+const targetName = process.argv.includes('--target') ? process.argv[process.argv.indexOf('--target') + 1] : 'copilot-sdk';
+const baseAdapter = targetName === 'vscode' ? createVsCodeChatAdapter()
+  : targetName === 'copilot-acp' ? createAcpAgentAdapter('copilot', ['--acp', '--stdio', '--model', modelName])
+  : createCopilotCliSdkAdapter(modelName);
 let lastPrintedKind = '';
 const adapter: typeof baseAdapter = {
   ...baseAdapter,

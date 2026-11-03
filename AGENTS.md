@@ -37,3 +37,10 @@ Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh aut
 - Verified live: SDK permission requests have kind='shell', fullCommandText (string), intention, commands[]; reasoning events (assistant.reasoning) are emitted for claude-haiku-4.5. Check: node tests/permission-shape.live.ts
 
 - Hotkey during reasoning read-back skips to the answer. VS Code replies are not read back (prompt-only adapter). Summarizing middleman idea not built.
+
+## Add a target (recipe)
+1. Create source/target-adapters/<name>-adapter.ts exporting createXAdapter(): TargetAdapter (see target-adapter.interface.ts; emit reasoningDelta/answerDelta/approvalRequested/turnCompleted/turnFailed).
+2. Add a branch for it in source/start-voice-chat.ts (--target <name>).
+3. Add a live check in tests/<name>-adapter.live.ts. Existing targets: copilot-sdk (default), copilot-acp (live-verified, generic ACP over stdio), vscode (prompt-only).
+
+- Status: all milestones M0-M9 built. Not built: VS Code reply read-back, Whisper tier, summarizing middleman.
