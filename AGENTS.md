@@ -33,3 +33,5 @@ Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh aut
 - Status: hotkey is Ctrl+Alt+Q (Ctrl+Shift+W closes Windows Terminal tabs; Win+Q/Win+W cannot be registered). Silence timer resets on live speech. Hang timeout and repeat-during-approval done. Unattended tests: tests/Run-VoiceScenario.ps1 (synthetic speech is unreliable through the mic). Still missing: hold-on, skip-reasoning, VS Code adapter, real permission-event verification.
 
 - VS Code adapter (prompt-only, uses 'code chat'): npm start -- --target vscode. Untested; replies are not read back.
+
+- Verified live: SDK permission requests have kind='shell', fullCommandText (string), intention, commands[]; reasoning events (assistant.reasoning) are emitted for claude-haiku-4.5. Check: node tests/permission-shape.live.ts
