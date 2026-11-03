@@ -43,4 +43,4 @@ Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh aut
 2. Add a branch for it in source/start-voice-chat.ts (--target <name>).
 3. Add a live check in tests/<name>-adapter.live.ts. Existing targets: copilot-sdk (default), copilot-acp (live-verified, generic ACP over stdio), vscode (prompt-only).
 
-- Status: all milestones M0-M9 built. Not built: VS Code reply read-back, Whisper tier, summarizing middleman.
+- Status: all milestones M0-M9 built and pushed. New: CLI spacebar overlay reader (source/overlay/, source/start-cli-spacebar-overlay.ts). Reads reasoning + answer aloud as you hold spacebar in the CLI. Launch: `node source/start-cli-spacebar-overlay.ts` (auto-detects latest session, or --session-id <UUID>). Not yet tested live. Original SDK voice loop (npm start) remains available.

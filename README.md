@@ -26,3 +26,4 @@ Log in to Copilot first (run `copilot` once, or set `GH_TOKEN`). Stop with Ctrl+
 See `AGENTS.md` for architecture and conventions.
 
 - Targets: --target copilot-sdk (default) | copilot-acp | vscode
+- CLI spacebar overlay: `node source/start-cli-spacebar-overlay.ts` (reads aloud reasoning + answer from session logs; auto-detects latest session)
