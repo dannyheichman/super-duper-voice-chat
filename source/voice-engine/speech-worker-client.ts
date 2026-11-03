@@ -9,6 +9,7 @@ import { createInterface } from 'node:readline';
 export interface SpeechWorkerEvent { readonly type: string; readonly [key: string]: unknown }
 
 export interface SpeechWorkerClient {
+  onEvent(listener: (event: SpeechWorkerEvent) => void): void;
   sendCommand(command: { type: string; [key: string]: unknown }): void;
   waitForEvent(expectedType: string, timeoutSeconds: number): Promise<SpeechWorkerEvent>;
   stopWorker(): Promise<void>;
@@ -22,10 +23,14 @@ export function startSpeechWorker(workerScriptPath: string): SpeechWorkerClient 
   );
   const receivedEvents: SpeechWorkerEvent[] = [];
   const waiters: Array<() => void> = [];
+  let eventListener: ((event: SpeechWorkerEvent) => void) | undefined;
   createInterface({ input: workerProcess.stdout }).on('line', (line) => {
     const jsonStart = line.indexOf('{');
     if (jsonStart === -1) return;
-    receivedEvents.push(JSON.parse(line.slice(jsonStart)) as SpeechWorkerEvent);
+    const event = JSON.parse(line.slice(jsonStart)) as SpeechWorkerEvent;
+    const isStreamingEvent = ['speechRecognized', 'speakingFinished', 'hotkeyPressed', 'error'].includes(event.type);
+    if (eventListener && isStreamingEvent) { eventListener(event); return; }
+    receivedEvents.push(event);
     waiters.splice(0).forEach((wake) => wake());
   });
 
@@ -40,6 +45,7 @@ export function startSpeechWorker(workerScriptPath: string): SpeechWorkerClient 
   }
 
   return {
+    onEvent: (listener) => { eventListener = listener; },
     sendCommand: (command) => { workerProcess.stdin.write(`${JSON.stringify(command)}\n`); },
     waitForEvent,
     async stopWorker() {

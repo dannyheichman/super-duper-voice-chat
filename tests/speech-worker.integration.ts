@@ -24,6 +24,9 @@ try {
   worker.sendCommand({ type: 'stopSpeaking' });
   await worker.waitForEvent('speakingFinished', 3);
   console.log(`PASS barge-in stop in ${Date.now() - cancelStartedMilliseconds} ms`);
+  worker.sendCommand({ type: 'registerHotkey', modifiers: 0x4000 | 2 | 1, keyCode: 0x7b }); // Ctrl+Alt+F12
+  const hotkeyStatus = await worker.waitForEvent('hotkeyRegistered', 10);
+  console.log(hotkeyStatus.isRegistered ? 'PASS hotkey registered' : 'WARN hotkey Ctrl+Alt+F12 already taken');
 } finally {
   await worker.stopWorker();
   console.log('worker stopped');

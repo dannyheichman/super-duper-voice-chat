@@ -1,9 +1,25 @@
 # SpeechWorker.ps1
 # Purpose : Long-lived Windows speech worker: speaks text, lists voices, recognizes dictation.
-# Inputs  : JSON lines on stdin: speak{text} | stopSpeaking | listVoices | setVoice{voiceName} | startRecognizing | stopRecognizing | quit
-# Outputs : JSON lines on stdout: ready, voices{voiceNames}, speakingStarted, speakingFinished, speechRecognized{text,confidence}, error{message}.
-# Depends : Windows PowerShell 5.1, System.Speech (built in). No admin needed.
+# Inputs  : JSON lines on stdin: speak{text} | stopSpeaking | listVoices | setVoice{voiceName} | registerHotkey{modifiers,keyCode} | startRecognizing | stopRecognizing | quit
+# Outputs : JSON lines on stdout: ready, voices{voiceNames}, hotkeyRegistered{isRegistered}, hotkeyPressed, speakingStarted, speakingFinished, speechRecognized{text,confidence}, error{message}.
+# Depends : Windows PowerShell 5.1, System.Speech and System.Windows.Forms (built in). No admin needed.
 Add-Type -AssemblyName System.Speech
+Add-Type -ReferencedAssemblies System.Windows.Forms -TypeDefinition @'
+using System; using System.Collections.Concurrent; using System.Runtime.InteropServices; using System.Threading; using System.Windows.Forms;
+public class HotkeyListener : NativeWindow {
+    [DllImport("user32.dll")] static extern bool RegisterHotKey(IntPtr h, int id, uint mod, uint key);
+    public static ConcurrentQueue<string> Pressed = new ConcurrentQueue<string>();
+    public static bool IsRegistered;
+    public static void Start(uint modifiers, uint key) {
+        var ready = new ManualResetEvent(false);
+        var thread = new Thread(() => {
+            var window = new HotkeyListener(); window.CreateHandle(new CreateParams());
+            IsRegistered = RegisterHotKey(window.Handle, 1, modifiers, key); ready.Set(); Application.Run();
+        }); thread.IsBackground = true; thread.SetApartmentState(ApartmentState.STA); thread.Start(); ready.WaitOne();
+    }
+    protected override void WndProc(ref Message m) { if (m.Msg == 0x0312) Pressed.Enqueue("hotkey"); base.WndProc(ref m); }
+}
+'@
 $synthesizer = New-Object System.Speech.Synthesis.SpeechSynthesizer
 $script:recognizer = $null
 
@@ -32,6 +48,8 @@ Send-Event @{ type = 'ready' }
 $isRunning = $true
 
 while ($isRunning) {
+    $pressedName = $null
+    while ([HotkeyListener]::Pressed.TryDequeue([ref]$pressedName)) { Send-Event @{ type = 'hotkeyPressed' } }
     foreach ($recognizedEvent in @(Get-Event -SourceIdentifier 'recognized' -ErrorAction SilentlyContinue)) {
         $result = $recognizedEvent.SourceEventArgs.Result
         Send-Event @{ type = 'speechRecognized'; text = $result.Text; confidence = [math]::Round($result.Confidence, 2) }
@@ -52,6 +70,7 @@ while ($isRunning) {
             'stopSpeaking' { $synthesizer.SpeakAsyncCancelAll() }
             'listVoices' { Send-Event @{ type = 'voices'; voiceNames = @($synthesizer.GetInstalledVoices() | ForEach-Object { $_.VoiceInfo.Name }) } }
             'setVoice' { $synthesizer.SelectVoice([string]$command.voiceName) }
+            'registerHotkey' { [HotkeyListener]::Start([uint32]$command.modifiers, [uint32]$command.keyCode); Send-Event @{ type = 'hotkeyRegistered'; isRegistered = [HotkeyListener]::IsRegistered } }
             'startRecognizing' { Start-Recognizing }
             'stopRecognizing' { Stop-Recognizing }
             'quit' { $isRunning = $false }
