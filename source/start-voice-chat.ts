@@ -57,7 +57,7 @@ const speechEngine: SpeechEngine = {
 
 worker.onEvent((event) => {
   if (event.type === 'speakingFinished') speakingFinishedListener();
-  else if (event.type === 'hotkeyPressed') loop.toggleListening();
+  else if (event.type === 'hotkeyPressed') { console.log(`[hotkey pressed in state ${loop.getState()}]`); loop.toggleListening(); console.log(`[state now ${loop.getState()}]`); }
   else if (event.type === 'error') console.error('worker error:', event.message);
 });
 
@@ -67,8 +67,11 @@ worker.sendCommand({ type: 'setVoice', voiceName: configuration.voiceName });
 worker.sendCommand({ type: 'registerHotkey', ...parseHotkey(configuration.hotkey) });
 const hotkeyStatus = await worker.waitForEvent('hotkeyRegistered', 10);
 if (!hotkeyStatus.isRegistered) console.error(`Hotkey ${configuration.hotkey} is already in use; change it in config/voice-chat.config.json`);
+else console.log(`[hotkey ${configuration.hotkey} registered]`);
 await adapter.startAdapter();
 console.log(`Ready. Press ${configuration.hotkey} to talk (model ${modelName}). Ctrl+C to quit.`);
 worker.sendCommand({ type: 'speak', text: 'Voice chat ready.' });
 
+process.on('uncaughtException', (error) => { console.error('CRASH (uncaught):', error.stack); });
+process.on('unhandledRejection', (reason) => { console.error('CRASH (unhandled rejection):', reason); });
 process.on('SIGINT', async () => { microphone.stop(); await adapter.stopAdapter(); await worker.stopWorker(); process.exit(0); });
