@@ -15,7 +15,8 @@ function parseHotkey(hotkeyText: string): { modifiers: number; keyCode: number }
   const parts = hotkeyText.split('+');
   const keyName = parts.pop()!;
   const modifiers = parts.reduce((bits, name) => bits | modifierBitsByName[name], 0x4000); // MOD_NOREPEAT
-  const keyCode = keyName === 'Space' ? 0x20 : keyName.toUpperCase().charCodeAt(0);
+  const functionKeyNumber = /^F(\d{1,2})$/i.exec(keyName)?.[1];
+  const keyCode = keyName === 'Space' ? 0x20 : functionKeyNumber ? 0x6f + Number(functionKeyNumber) : keyName.toUpperCase().charCodeAt(0);
   return { modifiers, keyCode };
 }
 
