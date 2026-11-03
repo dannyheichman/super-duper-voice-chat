@@ -19,5 +19,7 @@ Hands-free voice loop for GitHub Copilot CLI / VS Code. Full design: PLAN.md (in
 - Destructive approvals must always require `destructiveConfirmationPhrase`.
 
 ## Status
-Done: M0 scaffold, config loader, sentence splitter, read-aloud filter (+tests).
-Next: M1 SpeechWorker.ps1, M2 Copilot SDK adapter (`npm i @github/copilot-sdk`), M3 conversation loop.
+Done: M0 scaffold, config loader, sentence splitter, read-aloud filter (+tests); M1 `SpeechWorker.ps1` + `speech-worker-client.ts` (verified with `npm run test:worker`: speak, cancel/barge-in 152 ms; dictation/recognition events not yet verified with a real microphone).
+Next: M2 Copilot SDK adapter (`npm i @github/copilot-sdk`), M3 conversation loop, M4 voice approvals.
+Gotchas: in Windows PowerShell 5.1 `[Console]::In.ReadLineAsync()` blocks; use a `StreamReader` over `OpenStandardInput()`. The worker takes ~10–60 s to emit `ready` on first start.
+Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh auth setup-git` done), so `git push` works non-interactively.
