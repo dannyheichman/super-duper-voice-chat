@@ -29,6 +29,8 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
   let state: ConversationState = 'idle';
   let draftText = '';
   let silenceTimer: ReturnType<typeof setTimeout> | undefined;
+  let turnHangTimer: ReturnType<typeof setTimeout> | undefined;
+  let lastSpokenText = '';
   let isTurnCompleted = false;
   let isSpeakingNow = false;
   let lastSpokenKind: 'reasoning' | 'answer' | undefined;
@@ -53,6 +55,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
     setState('sending');
     isTurnCompleted = false;
     lastSpokenKind = undefined;
+    restartTurnHangTimer();
     adapter.sendPrompt(promptText).then(() => { if (state === 'sending') setState('waiting'); })
       .catch(() => { enqueueSpeech('Could not reach Copilot.'); isTurnCompleted = true; });
   }
@@ -69,6 +72,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
     isSpeakingNow = true;
     speech.stopRecognizing(); // half-duplex: never listen to ourselves
     if (state === 'waiting') setState('speaking');
+    lastSpokenText = nextText;
     speech.speak(nextText);
   }
 
@@ -88,7 +92,21 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
     splitters[kind].pushDelta(text).forEach(enqueueSpeech);
   }
 
+  function restartTurnHangTimer(): void {
+    clearTimeout(turnHangTimer);
+    turnHangTimer = setTimeout(() => {
+      adapter.abortTurn().catch(() => {});
+      enqueueSpeech('Copilot stopped responding. The turn was cancelled.');
+      isTurnCompleted = true;
+      if (!isSpeakingNow) startListening();
+    }, configuration.turnIdleTimeoutSeconds * 1000);
+    turnHangTimer.unref(); // never keep the process (or tests) alive just for this timer
+  }
+
   function handleAdapterEvent(event: TargetAdapterEvent): void {
+    if (event.type === 'turnCompleted' || event.type === 'turnFailed') clearTimeout(turnHangTimer);
+    else if (event.type !== 'approvalRequested') restartTurnHangTimer();
+    else clearTimeout(turnHangTimer); // waiting for the human, not hung
     if (event.type === 'reasoningDelta') speakDelta('reasoning', event.text);
     else if (event.type === 'answerDelta') speakDelta('answer', event.text);
     else if (event.type === 'approvalRequested') {
@@ -117,6 +135,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
       const graceSeconds = isFirstPhrase ? configuration.silenceTimeoutSeconds * 3 : configuration.silenceTimeoutSeconds; // extra time to think after the first phrase
       silenceTimer = setTimeout(sendDraft, graceSeconds * 1000);
     } else if (state === 'awaitingApproval') {
+      if (command === 'repeatThat') { enqueueSpeech(lastSpokenText); return; }
       if (command === 'approve' && pendingApprovalIsDestructive) {
         setState('confirmingDestructive');
         enqueueSpeech(`This looks destructive. Say ${configuration.destructiveConfirmationPhrase} or deny.`);
@@ -130,6 +149,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
   function resolveApproval(shouldApprove: boolean): void {
     speech.stopRecognizing();
     setState('waiting');
+    restartTurnHangTimer();
     adapter.respondToApproval(shouldApprove);
   }
 
