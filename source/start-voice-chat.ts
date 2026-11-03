@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { loadConfiguration } from './shared/load-configuration.ts';
 import { startSpeechWorker } from './voice-engine/speech-worker-client.ts';
 import { createCopilotCliSdkAdapter } from './target-adapters/copilot-cli-sdk-adapter.ts';
+import { startMicrophoneRecognition } from './voice-engine/recognize-speech-locally.ts';
 import { runConversationLoop, type SpeechEngine } from './voice-engine/run-conversation-loop.ts';
 
 const modifierBitsByName: Record<string, number> = { Alt: 1, Ctrl: 2, Shift: 4, Win: 8 };
@@ -21,7 +22,7 @@ function parseHotkey(hotkeyText: string): { modifiers: number; keyCode: number }
 }
 
 const configuration = loadConfiguration();
-const modelName = process.argv.includes('--model') ? process.argv[process.argv.indexOf('--model') + 1] : 'claude-sonnet-5.5';
+const modelName = process.argv.includes('--model') ? process.argv[process.argv.indexOf('--model') + 1] : 'claude-haiku-4.5';
 const worker = startSpeechWorker(fileURLToPath(new URL('./speech-workers/SpeechWorker.ps1', import.meta.url)));
 const baseAdapter = createCopilotCliSdkAdapter(modelName);
 let lastPrintedKind = '';
@@ -39,18 +40,23 @@ const adapter: typeof baseAdapter = {
 let recognizedListener: (text: string, confidence: number) => void = () => {};
 let speakingFinishedListener: () => void = () => {};
 
+const microphone = startMicrophoneRecognition(
+  fileURLToPath(new URL('../models/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17', import.meta.url)),
+  fileURLToPath(new URL('./speech-workers/MicCapture.ps1', import.meta.url)),
+  (text) => { console.log('heard:', text); recognizedListener(text, 1); },
+);
+
 const speechEngine: SpeechEngine = {
   speak: (text) => worker.sendCommand({ type: 'speak', text }),
   stopSpeaking: () => worker.sendCommand({ type: 'stopSpeaking' }),
-  startRecognizing: () => worker.sendCommand({ type: 'startRecognizing' }),
-  stopRecognizing: () => worker.sendCommand({ type: 'stopRecognizing' }),
+  startRecognizing: () => microphone.setIsListening(true),
+  stopRecognizing: () => microphone.setIsListening(false),
   onRecognized: (listener) => { recognizedListener = listener; },
   onSpeakingFinished: (listener) => { speakingFinishedListener = listener; },
 };
 
 worker.onEvent((event) => {
-  if (event.type === 'speechRecognized') { console.log('heard:', event.text); recognizedListener(String(event.text), Number(event.confidence)); }
-  else if (event.type === 'speakingFinished') speakingFinishedListener();
+  if (event.type === 'speakingFinished') speakingFinishedListener();
   else if (event.type === 'hotkeyPressed') loop.toggleListening();
   else if (event.type === 'error') console.error('worker error:', event.message);
 });
@@ -65,4 +71,4 @@ await adapter.startAdapter();
 console.log(`Ready. Press ${configuration.hotkey} to talk (model ${modelName}). Ctrl+C to quit.`);
 worker.sendCommand({ type: 'speak', text: 'Voice chat ready.' });
 
-process.on('SIGINT', async () => { await adapter.stopAdapter(); await worker.stopWorker(); process.exit(0); });
+process.on('SIGINT', async () => { microphone.stop(); await adapter.stopAdapter(); await worker.stopWorker(); process.exit(0); });

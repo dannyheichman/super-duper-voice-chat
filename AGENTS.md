@@ -27,3 +27,5 @@ Gotchas: in Windows PowerShell 5.1 `[Console]::In.ReadLineAsync()` blocks; use a
 Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh auth setup-git` done), so `git push` works non-interactively.
 
 - Status: M0-M4 plus global hotkey and start-voice-chat.ts done and pushed (10/10 unit tests). Still untested: real-mic dictation, SDK permission/reasoning event shapes. Missing: hang timeout, holdOn, repeat/skip commands, VS Code adapter.
+
+- Speech-to-text now uses local sherpa-onnx (source/voice-engine/recognize-speech-locally.ts + MicCapture.ps1). Model lives in models/ (gitignored): sherpa-onnx-streaming-zipformer-en-20M-2023-02-17 from the k2-fsa/sherpa-onnx asr-models release. Default Copilot model is claude-haiku-4.5.
