@@ -25,3 +25,5 @@ M3/M4 core: `run-conversation-loop.ts` + `interpret-voice-command.ts` (fake-test
 Next: `start-voice-chat.ts` entry wiring (worker + SDK adapter + loop), global hotkey in SpeechWorker.ps1 (RegisterHotKey), SpeechEngine adapter over speech-worker-client, real-microphone dictation test, hang timeout/abort (M6), VS Code adapter (M8).
 Gotchas: in Windows PowerShell 5.1 `[Console]::In.ReadLineAsync()` blocks; use a `StreamReader` over `OpenStandardInput()`. The worker takes ~10–60 s to emit `ready` on first start.
 Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh auth setup-git` done), so `git push` works non-interactively.
+
+- Status: M0-M4 plus global hotkey and start-voice-chat.ts done and pushed (10/10 unit tests). Still untested: real-mic dictation, SDK permission/reasoning event shapes. Missing: hang timeout, holdOn, repeat/skip commands, VS Code adapter.
