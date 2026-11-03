@@ -67,7 +67,7 @@ while ($isRunning) {
         $command = $line | ConvertFrom-Json
         switch ($command.type) {
             'speak' { Send-Event @{ type = 'speakingStarted' }; $null = $synthesizer.SpeakAsync([string]$command.text) }
-            'beep' { [Console]::Beep(988, 120) }
+            'beep' { [System.Media.SystemSounds]::Exclamation.Play() }
             'stopSpeaking' { $synthesizer.SpeakAsyncCancelAll() }
             'listVoices' { Send-Event @{ type = 'voices'; voiceNames = @($synthesizer.GetInstalledVoices() | ForEach-Object { $_.VoiceInfo.Name }) } }
             'setVoice' { $synthesizer.SelectVoice([string]$command.voiceName) }

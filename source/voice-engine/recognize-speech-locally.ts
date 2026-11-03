@@ -4,19 +4,26 @@
 // Outputs : startMicrophoneRecognition returns {setIsListening, stop}; utterances are only reported while listening.
 // Depends : sherpa-onnx-node, node:child_process, PowerShell 5.1.
 import { spawn } from 'node:child_process';
+import { readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 const sherpa = createRequire(import.meta.url)('sherpa-onnx-node');
+
+function findModelFile(modelDirectoryPath: string, prefix: string): string {
+  const fileNames = readdirSync(modelDirectoryPath).filter((name) => name.startsWith(prefix) && name.endsWith('.onnx'));
+  const preferredName = fileNames.find((name) => name.includes('int8') && prefix !== 'decoder') ?? fileNames.find((name) => !name.includes('int8')) ?? fileNames[0];
+  return join(modelDirectoryPath, preferredName);
+}
 
 export function startMicrophoneRecognition(modelDirectoryPath: string, micCaptureScriptPath: string, onUtterance: (text: string) => void) {
   const recognizer = new sherpa.OnlineRecognizer({
     featConfig: { sampleRate: 16000, featureDim: 80 },
     modelConfig: {
       transducer: {
-        encoder: join(modelDirectoryPath, 'encoder-epoch-99-avg-1.int8.onnx'),
-        decoder: join(modelDirectoryPath, 'decoder-epoch-99-avg-1.onnx'),
-        joiner: join(modelDirectoryPath, 'joiner-epoch-99-avg-1.int8.onnx'),
+        encoder: findModelFile(modelDirectoryPath, 'encoder'),
+        decoder: findModelFile(modelDirectoryPath, 'decoder'),
+        joiner: findModelFile(modelDirectoryPath, 'joiner'),
       },
       tokens: join(modelDirectoryPath, 'tokens.txt'), numThreads: 2, provider: 'cpu',
     },
@@ -42,7 +49,7 @@ export function startMicrophoneRecognition(modelDirectoryPath: string, micCaptur
     }
   });
   return {
-    setIsListening: (shouldListen: boolean) => { isListening = shouldListen; },
+    setIsListening: (shouldListen: boolean) => { isListening = shouldListen; if (shouldListen) recognizer.reset(stream); },
     stop: () => micProcess.kill(),
   };
 }

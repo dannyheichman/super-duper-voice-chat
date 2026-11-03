@@ -41,7 +41,7 @@ let recognizedListener: (text: string, confidence: number) => void = () => {};
 let speakingFinishedListener: () => void = () => {};
 
 const microphone = startMicrophoneRecognition(
-  fileURLToPath(new URL('../models/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17', import.meta.url)),
+  fileURLToPath(new URL('../models/sherpa-onnx-streaming-zipformer-en-2023-06-26', import.meta.url)),
   fileURLToPath(new URL('./speech-workers/MicCapture.ps1', import.meta.url)),
   (text) => { console.log('heard:', text); recognizedListener(text, 1); },
 );

@@ -111,9 +111,11 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
       if (command === 'sendNow') return sendDraft();
       if (command === 'cancelAll') { clearTimeout(silenceTimer); speech.stopRecognizing(); return setState('idle'); }
       if (command === 'scratchThat') { draftText = ''; return; }
+      const isFirstPhrase = draftText.trim().length === 0;
       draftText += ` ${text}`;
       clearTimeout(silenceTimer);
-      silenceTimer = setTimeout(sendDraft, configuration.silenceTimeoutSeconds * 1000);
+      const graceSeconds = isFirstPhrase ? configuration.silenceTimeoutSeconds + 3 : configuration.silenceTimeoutSeconds; // extra time to think after the first phrase
+      silenceTimer = setTimeout(sendDraft, graceSeconds * 1000);
     } else if (state === 'awaitingApproval') {
       if (command === 'approve' && pendingApprovalIsDestructive) {
         setState('confirmingDestructive');
