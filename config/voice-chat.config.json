@@ -1,0 +1,17 @@
+{
+  "hotkey": "Ctrl+Alt+Space",
+  "targetAdapterName": "copilot-cli",
+  "speechTier": "windows-builtin",
+  "voiceName": "Microsoft Zira Desktop",
+  "speakingRateWordsPerMinute": 180,
+  "silenceTimeoutSeconds": 2,
+  "trailingWordGraceSeconds": 1.5,
+  "noSpeechTimeoutSeconds": 30,
+  "turnIdleTimeoutSeconds": 300,
+  "approvalRepromptSeconds": 60,
+  "minimumCommandConfidence": 0.8,
+  "maximumSpokenCharactersPerTurn": 2000,
+  "shouldReadReasoningAloud": true,
+  "shouldListenWhileSpeaking": false,
+  "destructiveConfirmationPhrase": "yes I confirm"
+}
