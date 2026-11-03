@@ -49,7 +49,7 @@ const microphone = startMicrophoneRecognition(
 const speechEngine: SpeechEngine = {
   speak: (text) => worker.sendCommand({ type: 'speak', text }),
   stopSpeaking: () => worker.sendCommand({ type: 'stopSpeaking' }),
-  startRecognizing: () => microphone.setIsListening(true),
+  startRecognizing: () => { microphone.setIsListening(true); worker.sendCommand({ type: 'beep' }); },
   stopRecognizing: () => microphone.setIsListening(false),
   onRecognized: (listener) => { recognizedListener = listener; },
   onSpeakingFinished: (listener) => { speakingFinishedListener = listener; },

@@ -42,7 +42,7 @@ export function startMicrophoneRecognition(modelDirectoryPath: string, micCaptur
     }
   });
   return {
-    setIsListening: (shouldListen: boolean) => { isListening = shouldListen; if (shouldListen) recognizer.reset(stream); },
+    setIsListening: (shouldListen: boolean) => { isListening = shouldListen; },
     stop: () => micProcess.kill(),
   };
 }
