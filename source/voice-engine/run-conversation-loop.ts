@@ -130,6 +130,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
       if (command === 'sendNow') return sendDraft();
       if (command === 'cancelAll') { clearTimeout(silenceTimer); speech.stopRecognizing(); return setState('idle'); }
       if (command === 'scratchThat') { draftText = ''; return; }
+      if (command === 'holdOn') { clearTimeout(silenceTimer); return; } // pause auto-send until the next phrase
       const isFirstPhrase = draftText.trim().length === 0;
       draftText += ` ${text}`;
       clearTimeout(silenceTimer);

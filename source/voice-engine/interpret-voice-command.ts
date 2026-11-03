@@ -4,10 +4,10 @@
 // Outputs : command name string or undefined when the phrase is not a command in that state.
 // Depends : none.
 
-export type VoiceCommand = 'sendNow' | 'cancelAll' | 'approve' | 'deny' | 'confirmDestructive' | 'stopTalking' | 'repeatThat' | 'scratchThat';
+export type VoiceCommand = 'sendNow' | 'cancelAll' | 'approve' | 'deny' | 'confirmDestructive' | 'stopTalking' | 'repeatThat' | 'scratchThat' | 'holdOn';
 
 const phrasesByState: Record<string, ReadonlyArray<readonly [VoiceCommand, readonly string[]]>> = {
-  listening: [['sendNow', ['send it', 'go ahead']], ['scratchThat', ['scratch that']], ['cancelAll', ['cancel', 'never mind']]],
+  listening: [['sendNow', ['send it', 'go ahead']], ['scratchThat', ['scratch that']], ['holdOn', ['hold on', 'wait', 'one moment']], ['cancelAll', ['cancel', 'never mind']]],
   speaking: [['stopTalking', ['stop talking', 'quiet']], ['repeatThat', ['repeat that']]],
   awaitingApproval: [['approve', ['approve', 'yes', 'allow']], ['deny', ['deny', 'no', 'reject']], ['cancelAll', ['cancel']], ['repeatThat', ['repeat that']]],
   confirmingDestructive: [['confirmDestructive', []], ['deny', ['deny', 'no', 'cancel']]],

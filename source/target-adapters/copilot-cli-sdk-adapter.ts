@@ -16,7 +16,8 @@ export function createCopilotCliSdkAdapter(modelName: string): TargetAdapter {
 
   function summarizeRequest(request: Record<string, unknown>): string {
     const detail = request.fullCommandText ?? request.commands ?? request.fileName ?? request.toolName ?? request.url;
-    return `${String(request.kind)}: ${typeof detail === 'string' ? detail : JSON.stringify(detail ?? '')}`;
+    const detailText = typeof detail === 'string' ? detail : JSON.stringify(detail ?? '');
+    return typeof request.intention === 'string' ? `${request.intention}. Command: ${detailText}` : `${String(request.kind)}: ${detailText}`;
   }
 
   return {
