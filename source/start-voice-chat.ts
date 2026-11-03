@@ -39,11 +39,13 @@ const adapter: typeof baseAdapter = {
 };
 let recognizedListener: (text: string, confidence: number) => void = () => {};
 let speakingFinishedListener: () => void = () => {};
+let speechActivityListener: () => void = () => {};
 
 const microphone = startMicrophoneRecognition(
   fileURLToPath(new URL('../models/sherpa-onnx-streaming-zipformer-en-2023-06-26', import.meta.url)),
   fileURLToPath(new URL('./speech-workers/MicCapture.ps1', import.meta.url)),
   (text) => { console.log('heard:', text); recognizedListener(text, 1); },
+  () => speechActivityListener(),
 );
 
 const speechEngine: SpeechEngine = {
@@ -53,6 +55,7 @@ const speechEngine: SpeechEngine = {
   stopRecognizing: () => microphone.setIsListening(false),
   onRecognized: (listener) => { recognizedListener = listener; },
   onSpeakingFinished: (listener) => { speakingFinishedListener = listener; },
+  onSpeechActivity: (listener) => { speechActivityListener = listener; },
 };
 
 worker.onEvent((event) => {

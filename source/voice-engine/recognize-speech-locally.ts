@@ -16,7 +16,7 @@ function findModelFile(modelDirectoryPath: string, prefix: string): string {
   return join(modelDirectoryPath, preferredName);
 }
 
-export function startMicrophoneRecognition(modelDirectoryPath: string, micCaptureScriptPath: string, onUtterance: (text: string) => void) {
+export function startMicrophoneRecognition(modelDirectoryPath: string, micCaptureScriptPath: string, onUtterance: (text: string) => void, onSpeechActivity: () => void) {
   const recognizer = new sherpa.OnlineRecognizer({
     featConfig: { sampleRate: 16000, featureDim: 80 },
     modelConfig: {
@@ -42,6 +42,7 @@ export function startMicrophoneRecognition(modelDirectoryPath: string, micCaptur
     for (let i = 0; i < samples.length; i++) samples[i] = bytes.readInt16LE(i * 2) / 32768;
     stream.acceptWaveform({ sampleRate: 16000, samples });
     while (recognizer.isReady(stream)) recognizer.decode(stream);
+    if (isListening && String(recognizer.getResult(stream).text).trim()) onSpeechActivity();
     if (recognizer.isEndpoint(stream)) {
       const text = String(recognizer.getResult(stream).text).trim();
       recognizer.reset(stream);

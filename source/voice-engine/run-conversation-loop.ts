@@ -16,6 +16,7 @@ export interface SpeechEngine {
   stopRecognizing(): void;
   onRecognized(listener: (text: string, confidence: number) => void): void;
   onSpeakingFinished(listener: () => void): void;
+  onSpeechActivity?(listener: () => void): void;
 }
 
 export type ConversationState = 'idle' | 'listening' | 'sending' | 'waiting' | 'speaking' | 'awaitingApproval' | 'confirmingDestructive';
@@ -156,6 +157,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
   adapter.onEvent(handleAdapterEvent);
   speech.onRecognized(handleRecognized);
   speech.onSpeakingFinished(speakNext);
+  speech.onSpeechActivity?.(() => { if (state === 'listening') clearTimeout(silenceTimer); }); // still talking: do not send yet
 
   return {
     getState: () => state,
