@@ -23,7 +23,19 @@ function parseHotkey(hotkeyText: string): { modifiers: number; keyCode: number }
 const configuration = loadConfiguration();
 const modelName = process.argv.includes('--model') ? process.argv[process.argv.indexOf('--model') + 1] : 'claude-sonnet-5.5';
 const worker = startSpeechWorker(fileURLToPath(new URL('./speech-workers/SpeechWorker.ps1', import.meta.url)));
-const adapter = createCopilotCliSdkAdapter(modelName);
+const baseAdapter = createCopilotCliSdkAdapter(modelName);
+let lastPrintedKind = '';
+const adapter: typeof baseAdapter = {
+  ...baseAdapter,
+  sendPrompt: (promptText) => { console.log(`\nyou: ${promptText}`); lastPrintedKind = ''; return baseAdapter.sendPrompt(promptText); },
+  onEvent: (listener) => baseAdapter.onEvent((event) => {
+    if (event.type === 'reasoningDelta' || event.type === 'answerDelta') {
+      if (event.type !== lastPrintedKind) { process.stdout.write(`\n${event.type === 'reasoningDelta' ? 'thinking' : 'copilot'}: `); lastPrintedKind = event.type; }
+      process.stdout.write(event.text);
+    } else { lastPrintedKind = ''; console.log(`\n[${event.type}]`); }
+    listener(event);
+  }),
+};
 let recognizedListener: (text: string, confidence: number) => void = () => {};
 let speakingFinishedListener: () => void = () => {};
 
