@@ -35,3 +35,5 @@ Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh aut
 - VS Code adapter (prompt-only, uses 'code chat'): npm start -- --target vscode. Untested; replies are not read back.
 
 - Verified live: SDK permission requests have kind='shell', fullCommandText (string), intention, commands[]; reasoning events (assistant.reasoning) are emitted for claude-haiku-4.5. Check: node tests/permission-shape.live.ts
+
+- Hotkey during reasoning read-back skips to the answer. VS Code replies are not read back (prompt-only adapter). Summarizing middleman idea not built.

@@ -31,6 +31,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
   let draftText = '';
   let silenceTimer: ReturnType<typeof setTimeout> | undefined;
   let turnHangTimer: ReturnType<typeof setTimeout> | undefined;
+  let isReasoningSkipped = false;
   let lastSpokenText = '';
   let isTurnCompleted = false;
   let isSpeakingNow = false;
@@ -56,6 +57,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
     setState('sending');
     isTurnCompleted = false;
     lastSpokenKind = undefined;
+    isReasoningSkipped = false;
     restartTurnHangTimer();
     adapter.sendPrompt(promptText).then(() => { if (state === 'sending') setState('waiting'); })
       .catch(() => { enqueueSpeech('Could not reach Copilot.'); isTurnCompleted = true; });
@@ -84,7 +86,7 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
   }
 
   function speakDelta(kind: 'reasoning' | 'answer', text: string): void {
-    if (kind === 'reasoning' && !configuration.shouldReadReasoningAloud) return;
+    if (kind === 'reasoning' && (!configuration.shouldReadReasoningAloud || isReasoningSkipped)) return;
     if (lastSpokenKind !== kind) {
       splitters[lastSpokenKind ?? kind].flush().forEach(enqueueSpeech);
       enqueueSpeech(kind === 'reasoning' ? 'Thinking.' : 'Answer.');
@@ -165,6 +167,12 @@ export function runConversationLoop(adapter: TargetAdapter, speech: SpeechEngine
     toggleListening(): void {
       if (state === 'idle') startListening();
       else if (state === 'listening') sendDraft();
+      else if (state === 'speaking' && lastSpokenKind === 'reasoning' && !isTurnCompleted) { // hotkey during reasoning: skip to the answer
+        isReasoningSkipped = true;
+        const answerIndex = spokenQueue.indexOf('Answer.');
+        spokenQueue.splice(0, answerIndex === -1 ? spokenQueue.length : answerIndex);
+        speech.stopSpeaking();
+      }
       else if (state === 'speaking') { spokenQueue.length = 0; speech.stopSpeaking(); isSpeakingNow = false; isTurnCompleted = true; startListening(); }
     },
   };

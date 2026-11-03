@@ -72,3 +72,14 @@ test('hotkey while speaking barges in and listens', () => {
   emit({ type: 'turnCompleted' });
   assert.equal(loop.getState(), 'listening');
 });
+
+test('hotkey during reasoning skips to the answer', async () => {
+  const { loop, log, emit, say } = createFakes();
+  loop.toggleListening(); say('hello'); loop.toggleListening();
+  await wait(20);
+  emit({ type: 'reasoningDelta', text: 'First thought. Second thought. ' });
+  assert.equal(loop.getState(), 'speaking');
+  loop.toggleListening();
+  assert.ok(log.includes('stopSpeaking'));
+  assert.equal(loop.getState(), 'speaking');
+});
