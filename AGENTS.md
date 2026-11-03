@@ -31,3 +31,5 @@ Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh aut
 - Speech-to-text now uses local sherpa-onnx (source/voice-engine/recognize-speech-locally.ts + MicCapture.ps1). Model lives in models/ (gitignored): sherpa-onnx-streaming-zipformer-en-20M-2023-02-17 from the k2-fsa/sherpa-onnx asr-models release. Default Copilot model is claude-haiku-4.5.
 
 - Status: hotkey is Ctrl+Alt+Q (Ctrl+Shift+W closes Windows Terminal tabs; Win+Q/Win+W cannot be registered). Silence timer resets on live speech. Hang timeout and repeat-during-approval done. Unattended tests: tests/Run-VoiceScenario.ps1 (synthetic speech is unreliable through the mic). Still missing: hold-on, skip-reasoning, VS Code adapter, real permission-event verification.
+
+- VS Code adapter (prompt-only, uses 'code chat'): npm start -- --target vscode. Untested; replies are not read back.
