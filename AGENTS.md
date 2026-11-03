@@ -20,6 +20,7 @@ Hands-free voice loop for GitHub Copilot CLI / VS Code. Full design: PLAN.md (in
 
 ## Status
 Done: M0 scaffold, config loader, sentence splitter, read-aloud filter (+tests); M1 `SpeechWorker.ps1` + `speech-worker-client.ts` (verified with `npm run test:worker`: speak, cancel/barge-in 152 ms; dictation/recognition events not yet verified with a real microphone).
-Next: M2 Copilot SDK adapter (`npm i @github/copilot-sdk`), M3 conversation loop, M4 voice approvals.
+M2 `copilot-cli-sdk-adapter.ts` (live-verified with `node tests/copilot-adapter.live.ts`: streamed answer + turnCompleted; reasoning and approval events not yet exercised).
+Next: M3 conversation loop (hotkey, silence timer, speak-back), M4 voice approvals.
 Gotchas: in Windows PowerShell 5.1 `[Console]::In.ReadLineAsync()` blocks; use a `StreamReader` over `OpenStandardInput()`. The worker takes ~10–60 s to emit `ready` on first start.
 Tooling: `gh` is at `C:\Program Files\GitHub CLI\gh.exe` (authenticated; `gh auth setup-git` done), so `git push` works non-interactively.

@@ -3,7 +3,7 @@
 // Inputs  : worker script path; commands via sendCommand().
 // Outputs : worker events via waitForEvent(type, timeoutSeconds) and the onEvent listener.
 // Depends : node:child_process, node:readline, node:events.
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 
 export interface SpeechWorkerEvent { readonly type: string; readonly [key: string]: unknown }
@@ -15,7 +15,7 @@ export interface SpeechWorkerClient {
 }
 
 export function startSpeechWorker(workerScriptPath: string): SpeechWorkerClient {
-  const workerProcess: ChildProcessWithoutNullStreams = spawn(
+  const workerProcess = spawn(
     'powershell.exe',
     ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', workerScriptPath],
     { stdio: ['pipe', 'pipe', 'inherit'] },
